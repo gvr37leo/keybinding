@@ -4,7 +4,7 @@
 let container = document.querySelector('#container')
 
 for(let i = 0; i < 10;i++){
-    container.insertAdjacentHTML('beforeend',`<div class="hotbar"><div id="spell${i}" class="spell" draggable="true">${i}</div></div>`)
+    container.insertAdjacentHTML('beforeend',`<div class="hotbar"><div id="spell${i}" spellid="${i}" class="spell" draggable="true">${i}</div></div>`)
 }
 
 let spells = Array.from(document.querySelectorAll('.spell')) as HTMLElement[]
@@ -25,7 +25,14 @@ for(let hotbar of hotbars){
     hotbar.addEventListener('drop', ev => {
         console.log('drop');
         let data = ev.dataTransfer.getData("text");
-        ev.currentTarget.appendChild(document.getElementById(data));
+        // if current hotbar has a child
+        // transfer it to the parent of the incoming spell
+        var currenthotbar = ev.currentTarget as HTMLElement
+        var srcspell = document.getElementById(data)
+        if(currenthotbar.firstChild != null){
+            srcspell.parentElement.appendChild(currenthotbar.firstChild)
+        }
+        ev.currentTarget.appendChild(srcspell);
     })
 }
 
@@ -67,7 +74,9 @@ var actions = [
 ]//action bar 1,2,3,4,5,6,7
 
 function triggerActionBar(index:number){
-    console.log(index);
+    var hotbars = query('.hotbar')
+    var spellid = hotbars[index]?.firstChild?.getAttribute('spellid') ?? ""
+    console.log(spellid);
     //find hotbar
     //get spell
     //trigger spell
@@ -86,3 +95,7 @@ document.addEventListener('keydown', e => {
     }
 
 })
+
+function query(query:string){
+    return Array.from(document.querySelectorAll(query)) as HTMLElement[]
+}
