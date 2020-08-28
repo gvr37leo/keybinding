@@ -1,62 +1,15 @@
 /// <reference path="node_modules/vectorx/vector.ts" />
 /// <reference path="node_modules/utilsx/utils.ts" />
+/// <reference path="table.ts" />
+/// <reference path="ability.ts" />
+/// <reference path="abilityslot.ts" />
+/// <reference path="trigger.ts" />
+
 
 let container = document.querySelector('#container')
 
-for(let i = 0; i < 10;i++){
-    container.insertAdjacentHTML('beforeend',`<div class="hotbar"><div id="spell${i}" spellid="${i}" class="spell" draggable="true">${i}</div></div>`)
-}
-
-let spells = Array.from(document.querySelectorAll('.spell')) as HTMLElement[]
-for(let spell of spells){
-    spell.addEventListener('dragstart', ev => {
-        console.log('drag start');
-        ev.dataTransfer.setData("text", ev.target.id);
-    })
-}
-
-let hotbars = Array.from(document.querySelectorAll('.hotbar')) as HTMLElement[]
-for(let hotbar of hotbars){
-    hotbar.addEventListener('dragover', ev => {
-        console.log('drag over');
-        ev.preventDefault()
-    })
-
-    hotbar.addEventListener('drop', ev => {
-        console.log('drop');
-        let data = ev.dataTransfer.getData("text");
-        // if current hotbar has a child
-        // transfer it to the parent of the incoming spell
-        var currenthotbar = ev.currentTarget as HTMLElement
-        var srcspell = document.getElementById(data)
-        if(currenthotbar.firstChild != null){
-            srcspell.parentElement.appendChild(currenthotbar.firstChild)
-        }
-        ev.currentTarget.appendChild(srcspell);
-    })
-}
-
-class Trigger{
-    constructor(
-        public char:string,
-        public actionid:number,
-        public shift:boolean,
-        public ctrl:boolean,
-        public alt:boolean,
-    ){
-
-    }
-}
-
-class Action{
-    constructor(
-        public id:number,
-        public description:string,
-        public cb:() => void,
-    ){
-
-    }
-}
+var slotslist:AbilitySlot[] = []
+var abilitieslist:Ability2[] = []
 
 
 var triggers = [
@@ -67,19 +20,59 @@ var triggers = [
 ]//q,w,e,r,t,y   //rebindable(via menu~ or clicking on the tooltip)
 
 var actions = [
-    new Action(0, 'trigger actionbar', () => triggerActionBar(0)),
-    new Action(1, 'trigger actionbar', () => triggerActionBar(1)),
-    new Action(2, 'trigger actionbar', () => triggerActionBar(2)),
-    new Action(3, 'trigger actionbar', () => triggerActionBar(3)),
+    new Action(0, 'trigger actionbar', () => triggerActionBar(0,0)),
+    new Action(1, 'trigger actionbar', () => triggerActionBar(1,1)),
+    new Action(2, 'trigger actionbar', () => triggerActionBar(2,2)),
+    new Action(3, 'trigger actionbar', () => triggerActionBar(3,3)),
 ]//action bar 1,2,3,4,5,6,7
 
-function triggerActionBar(index:number){
-    var hotbars = query('.hotbar')
-    var spellid = hotbars[index]?.firstChild?.getAttribute('spellid') ?? ""
-    console.log(spellid);
-    //find hotbar
-    //get spell
-    //trigger spell
+function triggerActionBar(actionid:number,index:number){
+    var slot = findbyid(slotslist,index)
+    var abilities = findbyForeign(abilitieslist,'slotid',slot.id)
+    abilities.forEach(a => a.cb())
+
+
+
+    //this stuff shoud happen after rerender
+
+    //add display and shortcut to abilityslot
+    //when clicked listen for keypress
+    //lookup trigger and set key to that keypress
+    
+    // var owntriggers = findbyForeign(triggers,'actionid',actionid) 
+    // slot.shortcutelement.innerText = ''
+    // owntriggers.forEach(t => slot.shortcutelement.innerText += t.char)
+    // slot.shortcutelement.addEventListener('click', e => {
+    //     let listener = (kde:KeyboardEvent) => {
+    //         owntriggers.forEach(t => t.char = kde.key)
+    //         document.removeEventListener('keydown',listener)
+    //     }
+
+    //     document.addEventListener('keydown', listener)
+
+    // })
+
+
+}
+
+
+for(var i = 0; i < 10;i++){
+    slotslist.push(new AbilitySlot(i))
+}
+
+for(let i = 0; i < 5;i++){
+    abilitieslist.push(new Ability2(i,i, `ability${i}`, () => {
+        console.log(`ability ${i}`);
+    }))
+}
+
+renderActionBar()
+
+function renderActionBar(){
+    container.innerHTML = ''
+    for(var slot of slotslist){
+        container.appendChild(slot.render())
+    }
 }
 
 document.addEventListener('keydown', e => {
@@ -98,4 +91,12 @@ document.addEventListener('keydown', e => {
 
 function query(query:string){
     return Array.from(document.querySelectorAll(query)) as HTMLElement[]
+}
+
+function findbyid<T>(arr:T[], id:number):T{
+    return arr.find((v:any) => v.id == id)
+}
+
+function findbyForeign<T>(arr:T[],foreign:string,id:number):T[]{
+    return arr.filter(v => v[foreign] == id)
 }
