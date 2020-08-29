@@ -42,6 +42,9 @@ class AbilitySlot{
                     for(let action of ownactions){
                         let triggers = findbyForeign(triggerslist,'actionid',action.id) 
                         for(let trigger of triggers){
+                            trigger.shift = e.shiftKey
+                            trigger.alt = e.altKey
+                            trigger.ctrl = e.ctrlKey
                             trigger.char = e.key
                         }
                     }
