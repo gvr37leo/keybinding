@@ -20,39 +20,43 @@ var triggers = [
 ]//q,w,e,r,t,y   //rebindable(via menu~ or clicking on the tooltip)
 
 var actions = [
-    new Action(0, 'trigger actionbar', () => triggerActionBar(0,0)),
-    new Action(1, 'trigger actionbar', () => triggerActionBar(1,1)),
-    new Action(2, 'trigger actionbar', () => triggerActionBar(2,2)),
-    new Action(3, 'trigger actionbar', () => triggerActionBar(3,3)),
+    new Action(0, 'trigger actionbar', () => triggerActionBar(0),attachactionbar(0,0)),
+    new Action(1, 'trigger actionbar', () => triggerActionBar(1),attachactionbar(1,1)),
+    new Action(2, 'trigger actionbar', () => triggerActionBar(2),attachactionbar(2,2)),
+    new Action(3, 'trigger actionbar', () => triggerActionBar(3),attachactionbar(3,3)),
 ]//action bar 1,2,3,4,5,6,7
 
-function triggerActionBar(actionid:number,index:number){
+function attachactionbar(actionid:number,index:number){
+    
+
+    return function(){
+        //this stuff shoud happen after rerender
+
+        //add display and shortcut to abilityslot
+        //when clicked listen for keypress
+        //lookup trigger and set key to that keypress
+
+        var slot = findbyid(slotslist,index)
+        var owntriggers = findbyForeign(triggers,'actionid',actionid) 
+        slot.shortcutelement.innerText = ''
+        owntriggers.forEach(t => slot.shortcutelement.innerText += t.char)
+        slot.shortcutelement.addEventListener('click', e => {
+            let listener = (kde:KeyboardEvent) => {
+                owntriggers.forEach(t => t.char = kde.key)
+                document.removeEventListener('keydown',listener)
+                renderActionBar()
+            }
+
+            document.addEventListener('keydown', listener)
+
+        })
+    }
+}
+
+function triggerActionBar(index:number){
     var slot = findbyid(slotslist,index)
     var abilities = findbyForeign(abilitieslist,'slotid',slot.id)
     abilities.forEach(a => a.cb())
-
-
-
-    //this stuff shoud happen after rerender
-
-    //add display and shortcut to abilityslot
-    //when clicked listen for keypress
-    //lookup trigger and set key to that keypress
-    
-    // var owntriggers = findbyForeign(triggers,'actionid',actionid) 
-    // slot.shortcutelement.innerText = ''
-    // owntriggers.forEach(t => slot.shortcutelement.innerText += t.char)
-    // slot.shortcutelement.addEventListener('click', e => {
-    //     let listener = (kde:KeyboardEvent) => {
-    //         owntriggers.forEach(t => t.char = kde.key)
-    //         document.removeEventListener('keydown',listener)
-    //     }
-
-    //     document.addEventListener('keydown', listener)
-
-    // })
-
-
 }
 
 
@@ -72,6 +76,9 @@ function renderActionBar(){
     container.innerHTML = ''
     for(var slot of slotslist){
         container.appendChild(slot.render())
+    }
+    for(var action of actions){
+        action.attachcb()
     }
 }
 

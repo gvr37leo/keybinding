@@ -15,6 +15,7 @@ class Action{
         public id:number,
         public description:string,
         public cb:() => void,
+        public attachcb:() => void
     ){
 
     }
