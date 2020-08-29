@@ -14,7 +14,6 @@ class Ability2{
     render(){
         this.element = string2html(`<div class="ability" draggable="true">${this.name}</div>`)
         this.element.addEventListener('dragstart', ev => {
-            console.log('drag start');
             ev.dataTransfer.setData("abilityid", this.id as any);
         })
 

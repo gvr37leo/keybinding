@@ -8,14 +8,29 @@ class Trigger{
     ){
 
     }
+
+    render(){
+        var list = []
+        if(this.shift){
+            list.push('s')
+        }
+        if(this.ctrl){
+            list.push('c')
+        }
+        if(this.alt){
+            list.push('a')
+        }
+        list.push(this.char)
+
+        return list.join('-')
+    }
 }
 
 class Action{
     constructor(
         public id:number,
         public description:string,
-        public cb:() => void,
-        public attachcb:() => void
+        public actionslotid:number,
     ){
 
     }

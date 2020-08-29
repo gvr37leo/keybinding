@@ -11,53 +11,23 @@ let container = document.querySelector('#container')
 var slotslist:AbilitySlot[] = []
 var abilitieslist:Ability2[] = []
 
-
-var triggers = [
-    new Trigger('q',0,false,false,false),
-    new Trigger('w',1,false,false,false),
-    new Trigger('e',2,false,false,false),
-    new Trigger('r',3,false,false,false),
+var triggeridcounter = 0
+var triggerslist = [
+    new Trigger('q',triggeridcounter++,false,false,false),
+    new Trigger('w',triggeridcounter++,false,false,false),
+    new Trigger('e',triggeridcounter++,false,false,false),
+    new Trigger('r',triggeridcounter++,false,false,false),
 ]//q,w,e,r,t,y   //rebindable(via menu~ or clicking on the tooltip)
 
-var actions = [
-    new Action(0, 'trigger actionbar', () => triggerActionBar(0),attachactionbar(0,0)),
-    new Action(1, 'trigger actionbar', () => triggerActionBar(1),attachactionbar(1,1)),
-    new Action(2, 'trigger actionbar', () => triggerActionBar(2),attachactionbar(2,2)),
-    new Action(3, 'trigger actionbar', () => triggerActionBar(3),attachactionbar(3,3)),
+var actionidcounter = 0
+var actionslist = [
+    new Action(actionidcounter++, 'trigger actionbar 0', 0),
+    new Action(actionidcounter++, 'trigger actionbar 1', 1),
+    new Action(actionidcounter++, 'trigger actionbar 2', 2),
+    new Action(actionidcounter++, 'trigger actionbar 3', 3),
 ]//action bar 1,2,3,4,5,6,7
 
-function attachactionbar(actionid:number,index:number){
-    
 
-    return function(){
-        //this stuff shoud happen after rerender
-
-        //add display and shortcut to abilityslot
-        //when clicked listen for keypress
-        //lookup trigger and set key to that keypress
-
-        var slot = findbyid(slotslist,index)
-        var owntriggers = findbyForeign(triggers,'actionid',actionid) 
-        slot.shortcutelement.innerText = ''
-        owntriggers.forEach(t => slot.shortcutelement.innerText += t.char)
-        slot.shortcutelement.addEventListener('click', e => {
-            let listener = (kde:KeyboardEvent) => {
-                owntriggers.forEach(t => t.char = kde.key)
-                document.removeEventListener('keydown',listener)
-                renderActionBar()
-            }
-
-            document.addEventListener('keydown', listener)
-
-        })
-    }
-}
-
-function triggerActionBar(index:number){
-    var slot = findbyid(slotslist,index)
-    var abilities = findbyForeign(abilitieslist,'slotid',slot.id)
-    abilities.forEach(a => a.cb())
-}
 
 
 for(var i = 0; i < 10;i++){
@@ -77,21 +47,31 @@ function renderActionBar(){
     for(var slot of slotslist){
         container.appendChild(slot.render())
     }
-    for(var action of actions){
-        action.attachcb()
-    }
 }
 
 document.addEventListener('keydown', e => {
-    
-    var hittriggers = triggers.filter(t => {
+    // if(e.key == 'W'){
+    //     debugger
+    // }
+    var hittriggers = triggerslist.filter(t => {
         return t.char == e.key
         && t.ctrl == e.ctrlKey
         && t.shift == e.shiftKey
         && t.alt == e.altKey
     })
     for(var hittrigger of hittriggers){
-        actions.filter(a => a.id == hittrigger.actionid).forEach(a => a.cb())
+        // actions.filter(a => a.id == hittrigger.actionid).forEach(a => a.cb())
+        // todo trigger action -> abilityslot
+        var actionsfortrigger = actionslist.filter(a => a.id == hittrigger.actionid)
+
+        for(var action of actionsfortrigger){
+            var slot = slotslist.find(s => s.id == action.actionslotid)
+            var abilities = abilitieslist.filter(a => a.slotid == slot.id)
+
+            abilities.forEach(a => a.cb())
+
+        }
+
     }
 
 })
@@ -106,4 +86,16 @@ function findbyid<T>(arr:T[], id:number):T{
 
 function findbyForeign<T>(arr:T[],foreign:string,id:number):T[]{
     return arr.filter(v => v[foreign] == id)
+}
+
+function listenonce(eventtype:string,cb:(event) => void){
+    var listener = (e:KeyboardEvent) => {
+        if(e.key != 'Shift' && e.key != 'Control' && e.key != 'Alt'){
+            cb(e)
+            document.removeEventListener(eventtype,listener)
+        }
+        
+    }
+
+    document.addEventListener(eventtype, listener)
 }
